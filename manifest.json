@@ -1,0 +1,21 @@
+{
+  "name": "LUCK 50",
+  "short_name": "LUCK 50",
+  "description": "究極の運試しゲーム。1%の奇跡を掴め。",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#ff0055",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/ff0055/ffffff?text=L50",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512/ff0055/ffffff?text=L50",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
