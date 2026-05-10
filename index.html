@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUCK 50 - 1% MIRACLE UPDATE</title>
+    <title>LUCK 50 - OFFICIAL APP</title>
     
     <link rel="manifest" href="manifest.json">
     <script>
@@ -12,7 +12,9 @@
       }
     </script>
     <meta name="theme-color" content="#ff0055">
-    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/ff0055/ffffff?text=L50">
+    
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -33,12 +35,10 @@
         .prize-distribution { font-size: 0.75rem; color: #ffd700; margin-top: 10px; display: flex; justify-content: space-around; border-top: 1px solid #444; padding-top: 10px; }
         .notice-text { font-size: 0.65rem; color: #ff5555; margin-top: 15px; line-height: 1.4; background: rgba(255,0,0,0.1); padding: 8px; border-radius: 8px; }
 
-        /* スコアとステータス */
         #status-msg { height:30px; font-weight:bold; color:#888; transition: 0.3s; }
         .score-display { font-size: 5rem; font-weight: 900; color: #00ff88; margin: 10px 0; text-shadow: 0 0 25px rgba(0,255,136,0.3); }
         .pt-label { font-size: 1.5rem; color: #00ff88; font-weight: normal; margin-left: 5px; }
 
-        /* 1%成功時の巨大化演出 */
         .miracle-status { font-size: 2rem !important; color: #ffd700 !important; text-shadow: 0 0 20px #fff; animation: blink 0.5s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
@@ -58,9 +58,10 @@
         .user-info { font-size: 0.7rem; color: #888; margin-bottom: 10px; display: flex; justify-content: space-between; }
         .btn-label { display: block; font-size: 0.7rem; opacity: 0.8; }
 
-        /* X (Twitter) リンク */
         .x-link { margin-top: 25px; font-size: 0.8rem; color: #888; display: block; text-decoration: none; transition: 0.2s; }
         .x-link:hover { color: #fff; }
+        .policy-link { margin-top: 12px; font-size: 0.65rem; color: #444; display: block; text-decoration: none; transition: 0.2s; }
+        .policy-link:hover { color: #888; }
     </style>
 </head>
 <body>
@@ -69,6 +70,7 @@
     <div class="test-badge" id="card-badge">LUCK 50</div>
 
     <div id="auth-screen">
+        <img src="icon.png" alt="LUCK 50" style="width: 80px; height: 80px; border-radius: 18px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
         <div class="auth-tabs">
             <div class="auth-tab active" id="tab-login-btn">ログイン</div>
             <div class="auth-tab" id="tab-signup-btn">新規登録</div>
@@ -139,6 +141,7 @@
         <button id="btn-logout" style="background:transparent; color:#555; font-size:0.7rem; padding:15px 0 0 0; cursor:pointer;">ログアウト / 戻る</button>
         
         <a href="https://x.com/_LUCK_50" target="_blank" class="x-link">🔗 公式X: @_LUCK_50</a>
+        <a href="policy.html" class="policy-link">プライバシーポリシー / 利用規約</a>
     </div>
 </div>
 
@@ -164,16 +167,14 @@
     let currentUser = null;
     let userData = { name: "Player", score: 0, isGameOver: false, adCount: 5, lastUpdate: "", isAdmin: false };
 
-    // --- タブ切り替え ---
     const tL = document.getElementById('tab-login-btn'), tS = document.getElementById('tab-signup-btn'), tA = document.getElementById('tab-admin-btn');
     const fL = document.getElementById('login-form'), fS = document.getElementById('signup-form'), fA = document.getElementById('admin-form');
     tL.onclick = () => { tL.classList.add('active'); tS.classList.remove('active'); tA.classList.remove('active'); fL.style.display='block'; fS.style.display='none'; fA.style.display='none'; };
     tS.onclick = () => { tS.classList.add('active'); tL.classList.remove('active'); tA.classList.remove('active'); fS.style.display='block'; fL.style.display='none'; fA.style.display='none'; };
     tA.onclick = () => { tA.classList.add('active'); tL.classList.remove('active'); tS.classList.remove('active'); fA.style.display='block'; fL.style.display='none'; fS.style.display='none'; };
 
-    // --- 認証 ---
     document.getElementById('btn-login-exec').onclick = async () => {
-        try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch (e) { alert("失敗"); }
+        try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch (e) { alert("ログイン失敗"); }
     };
     document.getElementById('btn-signup-exec').onclick = async () => {
         const n = document.getElementById('signup-name').value;
@@ -181,14 +182,14 @@
             const res = await createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-pass').value);
             userData = { name: n, score: 0, isGameOver: false, adCount: 5, lastUpdate: new Date().toLocaleDateString(), isAdmin: false };
             await setDoc(doc(db, "users", res.user.uid), userData);
-        } catch (e) { alert("失敗"); }
+        } catch (e) { alert("登録失敗"); }
     };
     document.getElementById('btn-admin-exec').onclick = async () => {
         if(document.getElementById('admin-pass').value === "Sasaki15") {
             const res = await signInAnonymously(auth);
             userData = { name: "Admin", score: 0, isGameOver: false, adCount: 999, lastUpdate: "", isAdmin: true };
             await setDoc(doc(db, "users", res.user.uid), userData);
-        } else { alert("Error"); }
+        } else { alert("パスワードが違います"); }
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -216,7 +217,7 @@
             }
         }
         document.getElementById('display-name').innerText = userData.name;
-        document.getElementById('display-email').innerText = currentUser.isAnonymous ? "Admin Mode" : currentUser.email;
+        document.getElementById('display-email').innerText = currentUser.isAnonymous ? "管理者モード" : currentUser.email;
         document.getElementById('admin-label').style.display = userData.isAdmin ? 'inline' : 'none';
         updateUI();
     }
@@ -225,10 +226,8 @@
         if (currentUser) await setDoc(doc(db, "users", currentUser.uid), userData);
     }
 
-    // --- ゲームロジック ---
     window.challenge = async (prob, gain) => {
         const statusEl = document.getElementById('status-msg');
-        // 演出リセット
         statusEl.className = '';
 
         if (prob === 0.01) {
@@ -238,23 +237,16 @@
 
         if (Math.random() < prob) {
             if (gain === 'double') {
-                // スコアが0なら2倍にしても0なので1ptにする（救済措置）
                 if (userData.score === 0) userData.score = 10;
                 else userData.score *= 2;
-                
                 statusEl.innerText = "MIRACLE!!!";
                 statusEl.style.color = "#ffd700";
+                statusEl.className = 'miracle-status';
                 
-                // --- 派手な演出（コンフェッティと巨大化） ---
-                statusEl.className = 'miracle-status'; // 巨大化点滅CSS適用
-                
-                // 1%成功時のみ特別な紙吹雪演出
                 let duration = 3 * 1000;
                 let animationEnd = Date.now() + duration;
                 let defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
                 function randomInRange(min, max) { return Math.random() * (max - min) + min; }
-
                 let interval = setInterval(function() {
                     let timeLeft = animationEnd - Date.now();
                     if (timeLeft <= 0) return clearInterval(interval);
@@ -262,8 +254,6 @@
                     confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
                     confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
                 }, 250);
-                // --- 演出ここまで ---
-
             } else {
                 userData.score += gain;
                 statusEl.innerText = `SUCCESS! (+${gain})`;
@@ -284,8 +274,6 @@
         await updateDoc(doc(db, "config", "stats"), { total_ads_watched: increment(1) });
         if(!userData.isAdmin) userData.adCount--;
         userData.isGameOver = false; userData.score = 0;
-        document.getElementById('status-msg').innerText = "READY (AD REVIVED)";
-        document.getElementById('status-msg').style.color = "#888";
         await saveToFirebase();
         updateUI();
     };
@@ -297,7 +285,7 @@
     };
 
     function updateUI() {
-        document.getElementById('score-text').innerText = userData.score.toLocaleString(); // カンマ区切りで表示
+        document.getElementById('score-text').innerText = userData.score.toLocaleString();
         document.getElementById('normal-btns').style.display = userData.isGameOver ? 'none' : 'grid';
         document.getElementById('ad-btn').style.display = userData.isGameOver ? 'block' : 'none';
         document.getElementById('save-btn').style.display = (!userData.isGameOver && userData.score > 0) ? 'block' : 'none';
