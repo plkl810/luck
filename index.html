@@ -48,20 +48,18 @@
         .btn-50 { background: #ff0055; color: white; }
         .btn-25 { background: #6200ea; color: white; }
         .btn-1 { background: linear-gradient(45deg, #ffd700, #ff8c00); color: black; grid-column: span 2; font-size: 1.2rem; border: 2px solid #fff; position: relative; overflow: hidden; }
-        .btn-1::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(transparent, rgba(255,255,255,0.3), transparent); transform: rotate(45deg); animation: shine 3s infinite; }
-        @keyframes shine { 0% { top: -100%; left: -100%; } 100% { top: 100%; left: 100%; } }
         
         .btn-secondary { background: #444; color: white; margin-top: 20px; }
         .btn-ad { background: #00c853; color: white; display: none; }
         .ranking { margin-top: 30px; text-align: left; background: #252525; padding: 20px; border-radius: 16px; border: 1px solid #333; }
         .ranking-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #333; font-size: 0.9rem; }
         .user-info { font-size: 0.7rem; color: #888; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .btn-label { display: block; font-size: 0.7rem; opacity: 0.8; }
-
-        .x-link { margin-top: 25px; font-size: 0.8rem; color: #888; display: block; text-decoration: none; transition: 0.2s; }
-        .x-link:hover { color: #fff; }
-        .policy-link { margin-top: 12px; font-size: 0.65rem; color: #444; display: block; text-decoration: none; transition: 0.2s; }
-        .policy-link:hover { color: #888; }
+        
+        .x-link { margin-top: 25px; font-size: 0.8rem; color: #888; display: block; text-decoration: none; }
+        .policy-link { margin-top: 12px; font-size: 0.65rem; color: #444; display: block; text-decoration: none; }
+        
+        /* 審査用コンテンツのスタイル */
+        .official-guide { text-align: left; background: #1a1a1a; padding: 20px; border-radius: 16px; margin-top: 30px; border: 1px solid #333; font-size: 0.85rem; line-height: 1.8; color: #ccc; }
     </style>
 </head>
 <body>
@@ -117,18 +115,10 @@
 
         <div id="action-area">
             <div class="btn-grid" id="normal-btns">
-                <button class="btn-75" onclick="challenge(0.75, 10)">
-                    <span class="btn-label">確率75%</span>+10 pt
-                </button>
-                <button class="btn-50" onclick="challenge(0.50, 20)">
-                    <span class="btn-label">確率50%</span>+20 pt
-                </button>
-                <button class="btn-25" onclick="challenge(0.25, 50)">
-                    <span class="btn-label">確率25%</span>+50 pt
-                </button>
-                <button class="btn-1" onclick="challenge(0.01, 'double')">
-                    <span class="btn-label">確率1%の奇跡</span>SCORE × 2
-                </button>
+                <button class="btn-75" onclick="challenge(0.75, 10)">確率75% (+10pt)</button>
+                <button class="btn-50" onclick="challenge(0.50, 20)">確率50% (+20pt)</button>
+                <button class="btn-25" onclick="challenge(0.25, 50)">確率25% (+50pt)</button>
+                <button class="btn-1" onclick="challenge(0.01, 'double')">1%の奇跡 (x2)</button>
             </div>
             <button class="btn-ad" id="ad-btn">広告を見て再開</button>
             <button class="btn-secondary" id="save-btn" style="display:none;">ランキングに保存</button>
@@ -138,9 +128,21 @@
             <h3 style="font-size: 0.9rem; color: #888; margin:0 0 10px 0;">📊 世界ランキング</h3>
             <div id="ranking-list"></div>
         </div>
+        
         <button id="btn-logout" style="background:transparent; color:#555; font-size:0.7rem; padding:15px 0 0 0; cursor:pointer;">ログアウト / 戻る</button>
         
         <a href="https://x.com/_LUCK_50" target="_blank" class="x-link">🔗 公式X: @_LUCK_50</a>
+
+        <div class="official-guide">
+            <h2 style="color: #00ff88; font-size: 1.1rem; border-bottom: 1px solid #00ff88; padding-bottom: 5px; margin-top:0;">LUCK 50 公式ガイド</h2>
+            <h3 style="color: #fff; margin-top: 15px; font-size: 0.9rem;">■ LUCK 50 とは？</h3>
+            <p>LUCK 50は、数学的な「確率」と「人間の直感」の限界に挑む、究極の運試しシミュレーションゲームです。日常に潜む「確率」を再定義し、リスク管理能力を競い合います。</p>
+            <h3 style="color: #fff; margin-top: 15px; font-size: 0.9rem;">■ 確率の仕組みと戦略</h3>
+            <p>4つの確率ボタンを使い分けます。安定型の75%で地道に稼ぐか、1%の奇跡で一発逆転を狙うか。理論上の期待値を計算する戦略性が求められます。</p>
+            <h3 style="color: #fff; margin-top: 15px; font-size: 0.9rem;">■ 開発背景とビジョン</h3>
+            <p>私たちは「ユーザー還元型エンターテインメント」を目指しています。広告収益を賞金プールとして可視化し、コミュニティへ利益を還元するエコシステムを構築します。</p>
+        </div>
+
         <a href="policy.html" class="policy-link">プライバシーポリシー / 利用規約</a>
     </div>
 </div>
@@ -174,7 +176,7 @@
     tA.onclick = () => { tA.classList.add('active'); tL.classList.remove('active'); tS.classList.remove('active'); fA.style.display='block'; fL.style.display='none'; fS.style.display='none'; };
 
     document.getElementById('btn-login-exec').onclick = async () => {
-        try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch (e) { alert("ログイン失敗"); }
+        try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch (e) { alert("Login Error"); }
     };
     document.getElementById('btn-signup-exec').onclick = async () => {
         const n = document.getElementById('signup-name').value;
@@ -182,14 +184,14 @@
             const res = await createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-pass').value);
             userData = { name: n, score: 0, isGameOver: false, adCount: 5, lastUpdate: new Date().toLocaleDateString(), isAdmin: false };
             await setDoc(doc(db, "users", res.user.uid), userData);
-        } catch (e) { alert("登録失敗"); }
+        } catch (e) { alert("Signup Error"); }
     };
     document.getElementById('btn-admin-exec').onclick = async () => {
         if(document.getElementById('admin-pass').value === "Sasaki15") {
             const res = await signInAnonymously(auth);
             userData = { name: "Admin", score: 0, isGameOver: false, adCount: 999, lastUpdate: "", isAdmin: true };
             await setDoc(doc(db, "users", res.user.uid), userData);
-        } else { alert("パスワードが違います"); }
+        } else { alert("Auth Error"); }
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -217,7 +219,7 @@
             }
         }
         document.getElementById('display-name').innerText = userData.name;
-        document.getElementById('display-email').innerText = currentUser.isAnonymous ? "管理者モード" : currentUser.email;
+        document.getElementById('display-email').innerText = currentUser.isAnonymous ? "Admin Mode" : currentUser.email;
         document.getElementById('admin-label').style.display = userData.isAdmin ? 'inline' : 'none';
         updateUI();
     }
@@ -229,39 +231,21 @@
     window.challenge = async (prob, gain) => {
         const statusEl = document.getElementById('status-msg');
         statusEl.className = '';
-
-        if (prob === 0.01) {
-            const sure = confirm("【警告】確率はわずか1%。成功でスコア2倍、失敗ですべて失います。挑戦しますか？");
-            if (!sure) return;
-        }
+        if (prob === 0.01) { if (!confirm("1%に挑戦しますか？")) return; }
 
         if (Math.random() < prob) {
             if (gain === 'double') {
-                if (userData.score === 0) userData.score = 10;
-                else userData.score *= 2;
+                userData.score = userData.score === 0 ? 10 : userData.score * 2;
                 statusEl.innerText = "MIRACLE!!!";
-                statusEl.style.color = "#ffd700";
                 statusEl.className = 'miracle-status';
-                
-                let duration = 3 * 1000;
-                let animationEnd = Date.now() + duration;
-                let defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-                function randomInRange(min, max) { return Math.random() * (max - min) + min; }
-                let interval = setInterval(function() {
-                    let timeLeft = animationEnd - Date.now();
-                    if (timeLeft <= 0) return clearInterval(interval);
-                    let particleCount = 50 * (timeLeft / duration);
-                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-                }, 250);
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             } else {
                 userData.score += gain;
                 statusEl.innerText = `SUCCESS! (+${gain})`;
-                statusEl.style.color = "#00ff88";
             }
+            statusEl.style.color = "#00ff88";
         } else {
-            userData.score = 0;
-            userData.isGameOver = true;
+            userData.score = 0; userData.isGameOver = true;
             statusEl.innerText = "FAILED... RESET";
             statusEl.style.color = "#ff0055";
         }
@@ -270,7 +254,7 @@
     };
 
     document.getElementById('ad-btn').onclick = async () => {
-        if (!userData.isAdmin && userData.adCount <= 0) return alert("本日分終了");
+        if (!userData.isAdmin && userData.adCount <= 0) return alert("No ads left");
         await updateDoc(doc(db, "config", "stats"), { total_ads_watched: increment(1) });
         if(!userData.isAdmin) userData.adCount--;
         userData.isGameOver = false; userData.score = 0;
@@ -279,7 +263,7 @@
     };
 
     document.getElementById('save-btn').onclick = async () => {
-        if(!confirm(`${userData.score} pt をランキングに保存しますか？`)) return;
+        if(!confirm("ランキングに保存しますか？")) return;
         await addDoc(collection(db, "rankings"), { name: (userData.isAdmin ? "[ADM] " : "") + userData.name, score: userData.score, timestamp: serverTimestamp() });
         userData.score = 0; userData.isGameOver = true; await saveToFirebase(); updateUI();
     };
@@ -289,7 +273,7 @@
         document.getElementById('normal-btns').style.display = userData.isGameOver ? 'none' : 'grid';
         document.getElementById('ad-btn').style.display = userData.isGameOver ? 'block' : 'none';
         document.getElementById('save-btn').style.display = (!userData.isGameOver && userData.score > 0) ? 'block' : 'none';
-        document.getElementById('ad-btn').innerText = userData.isAdmin ? "Admin Power" : `広告を見て再開 (残り ${userData.adCount}/5)`;
+        document.getElementById('ad-btn').innerText = userData.isAdmin ? "Admin Power" : `広告を見て再開 (${userData.adCount}/5)`;
     }
 
     onSnapshot(doc(db, "config", "stats"), (d) => {
