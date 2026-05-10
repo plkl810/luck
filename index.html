@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUCK 100% - 完全運ゲー(Beta)</title>
+    <title>LUCK 50 - 完全運ゲー(Beta)</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 20px; }
         .card { background: #1e1e1e; border-radius: 24px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); max-width: 420px; margin: auto; border: 1px solid #333; position: relative; overflow: hidden; }
@@ -29,6 +29,10 @@
         .ranking h3 { margin-top: 0; font-size: 1rem; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 10px; }
         .ranking-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #333; }
         
+        /* 問い合わせエリア */
+        .contact-area { margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; font-size: 0.85rem; }
+        .contact-link { color: #2196f3; text-decoration: none; font-weight: bold; border-bottom: 1px solid #2196f3; }
+
         .footer-note { font-size: 0.65rem; color: #666; margin-top: 20px; line-height: 1.4; }
         .btn-admin-auth { background: transparent; color: #333; font-size: 0.7rem; padding: 5px; width: auto; margin-top: 10px; }
     </style>
@@ -60,9 +64,14 @@
         <div id="ranking-list"></div>
     </div>
 
+    <div class="contact-area">
+        📩 ご要望・当選確認は<br>
+        <a href="https://x.com/_LUCK_50" target="_blank" class="contact-link">公式X（@_LUCK_50）まで</a>
+    </div>
+
     <div class="footer-note">
         【テスト版に関する注意事項】<br>
-        本サイトは開発中のテスト版です。データのリセットや仕様変更が予告なく行われる場合があります。上位入賞者へのポイント付与については、公式SNSをご確認ください。
+        本サイトは開発中のテスト版です。データのリセットや仕様変更が予告なく行われる場合があります。上位入賞者へのポイント付与については、上記公式Xをご確認ください。
     </div>
 
     <button class="btn-admin-auth" id="admin-auth-btn">管理者用</button>
@@ -85,13 +94,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const ADMIN_PASSWORD = "1234"; // 必要に応じて変更
+    const ADMIN_PASSWORD = "1234";
     let currentScore = 0;
     let isGameOver = false;
     let adCount = 3;
     let isAdmin = false;
 
-    // 賞金リアルタイム更新
     onSnapshot(doc(db, "config", "stats"), (d) => {
         if(d.exists()) {
             const amount = Math.floor(d.data().total_ads_watched * 5 * 0.6);
@@ -99,7 +107,6 @@
         }
     });
 
-    // ランキングリアルタイム更新
     onSnapshot(query(collection(db, "rankings"), orderBy("score", "desc"), limit(10)), (s) => {
         const l = document.getElementById('ranking-list');
         l.innerHTML = "";
@@ -108,7 +115,6 @@
         });
     });
 
-    // メインロジック
     document.getElementById('challenge-btn').onclick = () => {
         if (Math.random() < 0.5) {
             currentScore++;
@@ -123,7 +129,6 @@
         updateUI();
     };
 
-    // 保存処理
     document.getElementById('save-btn').onclick = async () => {
         const n = prompt("ランキングに載せる名前を入力してください", "名無しさん");
         if (!n) return;
@@ -137,39 +142,5 @@
         alert("スコアを記録しました！");
     };
 
-    // 広告復活（擬似）
     document.getElementById('ad-btn').onclick = async () => {
-        try {
-            await updateDoc(doc(db, "config", "stats"), { total_ads_watched: increment(1) });
-            adCount--; 
-            isGameOver = false; 
-            document.getElementById('status-msg').innerText = "RESURRECTED!";
-            updateUI();
-        } catch (e) { alert("システムエラー: 管理者にお問い合わせください"); }
-    };
-
-    // 管理者用復活
-    document.getElementById('admin-res-btn').onclick = () => { isGameOver = false; updateUI(); };
-
-    // 管理者ログイン
-    document.getElementById('admin-auth-btn').onclick = () => {
-        if(prompt("パスワードを入力") === ADMIN_PASSWORD) { 
-            isAdmin = true; 
-            alert("管理者モードが有効になりました。"); 
-            updateUI(); 
-        }
-    };
-
-    function updateUI() {
-        document.getElementById('score-text').innerText = currentScore;
-        document.getElementById('challenge-btn').style.display = isGameOver ? 'none' : 'block';
-        document.getElementById('save-btn').style.display = (!isGameOver && currentScore > 0) ? 'block' : 'none';
-        document.getElementById('ad-btn').style.display = (isGameOver && !isAdmin) ? 'block' : 'none';
-        document.getElementById('admin-res-btn').style.display = (isGameOver && isAdmin) ? 'block' : 'none';
-        document.getElementById('ad-btn').innerText = `広告で復活 (残り${adCount}回)`;
-    }
-
-    function resetGame() { isGameOver = false; updateUI(); document.getElementById('status-msg').innerText = "NEXT TRY!"; }
-</script>
-</body>
-</html>
+        if (adCount <= 0 &&
