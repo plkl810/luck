@@ -7,32 +7,22 @@
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 20px; }
         .card { background: #1e1e1e; border-radius: 24px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); max-width: 420px; margin: auto; border: 1px solid #333; position: relative; overflow: hidden; }
-        
-        /* テスト版リボン */
         .test-badge { background: #ffd700; color: black; font-size: 0.7rem; font-weight: 900; padding: 5px 0; width: 150px; position: absolute; top: 15px; right: -40px; transform: rotate(45deg); text-transform: uppercase; letter-spacing: 1px; }
-
         .prize-pool { background: linear-gradient(145deg, #2c2c2c, #1a1a1a); padding: 20px; border-radius: 18px; border: 1px solid #ffd700; margin-bottom: 10px; }
         .prize-amount { font-size: 2.2rem; font-weight: bold; color: #fff; display: block; margin-top: 5px; text-shadow: 0 0 15px rgba(255,215,0,0.4); }
-        
         .info-bar { font-size: 0.8rem; color: #00ff88; margin-bottom: 15px; background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; border: 1px solid rgba(0,255,136,0.2); }
-        
         .score-display { font-size: 5rem; font-weight: 900; color: #00ff88; margin: 15px 0; text-shadow: 0 0 25px rgba(0,255,136,0.3); }
-        
         button { width: 100%; padding: 18px; margin: 10px 0; border: none; border-radius: 14px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-challenge { background: linear-gradient(135deg, #ff0055, #ff4081); color: white; box-shadow: 0 5px 15px rgba(255,0,85,0.3); }
         .btn-challenge:active { transform: scale(0.98); }
         .btn-save { background: #2196f3; color: white; }
         .btn-ad { background: #6200ea; color: white; display: none; }
         .btn-admin-resurrect { background: #ff9800; color: black; display: none; }
-        
         .ranking { margin-top: 30px; text-align: left; background: #252525; padding: 20px; border-radius: 16px; border: 1px solid #333; }
         .ranking h3 { margin-top: 0; font-size: 1rem; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 10px; }
         .ranking-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #333; }
-        
-        /* 問い合わせエリア */
         .contact-area { margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; font-size: 0.85rem; }
         .contact-link { color: #2196f3; text-decoration: none; font-weight: bold; border-bottom: 1px solid #2196f3; }
-
         .footer-note { font-size: 0.65rem; color: #666; margin-top: 20px; line-height: 1.4; }
         .btn-admin-auth { background: transparent; color: #333; font-size: 0.7rem; padding: 5px; width: auto; margin-top: 10px; }
     </style>
@@ -71,7 +61,7 @@
 
     <div class="footer-note">
         【テスト版に関する注意事項】<br>
-        本サイトは開発中のテスト版です。データのリセットや仕様変更が予告なく行われる場合があります。上位入賞者へのポイント付与については、上記公式Xをご確認ください。
+        本サイトは開発中のテスト版です。データのリセットや仕様変更が予告なく行われる場合があります。
     </div>
 
     <button class="btn-admin-auth" id="admin-auth-btn">管理者用</button>
@@ -81,66 +71,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
+    // ご提示いただいた最新のConfig
     const firebaseConfig = {
         apiKey: "AIzaSyDMwuHeWjTy8mh3kYP8yz9_YoF9IFi9e7I",
-        authDomain: "kuck1-12bc6.firebaseapp.com",
-        projectId: "kuck1-12bc6",
-        storageBucket: "kuck1-12bc6.firebasestorage.app",
-        messagingSenderId: "888812967555",
-        appId: "1:888812967555:web:7e54f508a6bf5ed931adb6",
-        measurementId: "G-Q7876FZ3QP"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const ADMIN_PASSWORD = "1234";
-    let currentScore = 0;
-    let isGameOver = false;
-    let adCount = 3;
-    let isAdmin = false;
-
-    onSnapshot(doc(db, "config", "stats"), (d) => {
-        if(d.exists()) {
-            const amount = Math.floor(d.data().total_ads_watched * 5 * 0.6);
-            document.getElementById('prize-text').innerText = `¥${amount.toLocaleString()}`;
-        }
-    });
-
-    onSnapshot(query(collection(db, "rankings"), orderBy("score", "desc"), limit(10)), (s) => {
-        const l = document.getElementById('ranking-list');
-        l.innerHTML = "";
-        s.forEach(d => {
-            l.innerHTML += `<div class="ranking-item"><span>${d.data().name}</span><span>${d.data().score} 連勝</span></div>`;
-        });
-    });
-
-    document.getElementById('challenge-btn').onclick = () => {
-        if (Math.random() < 0.5) {
-            currentScore++;
-            document.getElementById('status-msg').innerText = "SUCCESS!";
-            document.getElementById('status-msg').style.color = "#00ff88";
-        } else {
-            currentScore = 0;
-            isGameOver = true;
-            document.getElementById('status-msg').innerText = "FAILED...";
-            document.getElementById('status-msg').style.color = "#ff0055";
-        }
-        updateUI();
-    };
-
-    document.getElementById('save-btn').onclick = async () => {
-        const n = prompt("ランキングに載せる名前を入力してください", "名無しさん");
-        if (!n) return;
-        await addDoc(collection(db, "rankings"), { 
-            name: n + (isAdmin ? " (Admin)" : ""), 
-            score: currentScore, 
-            timestamp: serverTimestamp() 
-        });
-        currentScore = 0;
-        resetGame();
-        alert("スコアを記録しました！");
-    };
-
-    document.getElementById('ad-btn').onclick = async () => {
-        if (adCount <= 0 &&
+        authDomain:
