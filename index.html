@@ -3,29 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUCK 50 - 完全運ゲー(Admin修正版)</title>
+    <title>LUCK 50 - 賞金プール版</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 20px; }
-        .card { background: #1e1e1e; border-radius: 24px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); max-width: 420px; margin: auto; border: 1px solid #333; position: relative; overflow: hidden; }
+        .card { background: #1e1e1e; border-radius: 24px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); max-width: 440px; margin: auto; border: 1px solid #333; position: relative; overflow: hidden; }
         .test-badge { background: #ffd700; color: black; font-size: 0.7rem; font-weight: 900; padding: 5px 0; width: 150px; position: absolute; top: 15px; right: -40px; transform: rotate(45deg); text-transform: uppercase; letter-spacing: 1px; }
+        
         #auth-screen { display: block; }
         #game-screen { display: none; }
         .auth-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #333; }
         .auth-tab { padding: 10px; cursor: pointer; color: #888; font-weight: bold; font-size: 0.85rem; }
         .auth-tab.active { color: #00ff88; border-bottom: 2px solid #00ff88; }
         input { width: 85%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #222; color: white; }
+        
         .prize-pool { background: linear-gradient(145deg, #2c2c2c, #1a1a1a); padding: 20px; border-radius: 18px; border: 1px solid #ffd700; margin-bottom: 10px; }
         .prize-amount { font-size: 2.2rem; font-weight: bold; color: #fff; display: block; margin-top: 5px; text-shadow: 0 0 15px rgba(255,215,0,0.4); }
+        
+        /* 賞金内訳 */
+        .prize-distribution { font-size: 0.75rem; color: #ffd700; margin-top: 10px; display: flex; justify-content: space-around; border-top: 1px solid #444; padding-top: 10px; }
+        .notice-text { font-size: 0.65rem; color: #ff5555; margin-top: 15px; line-height: 1.4; background: rgba(255,0,0,0.1); padding: 8px; border-radius: 8px; }
+
         .score-display { font-size: 5rem; font-weight: 900; color: #00ff88; margin: 15px 0; text-shadow: 0 0 25px rgba(0,255,136,0.3); }
-        button { width: 100%; padding: 18px; margin: 10px 0; border: none; border-radius: 14px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-primary { background: linear-gradient(135deg, #ff0055, #ff4081); color: white; }
-        .btn-secondary { background: #2196f3; color: white; }
-        .btn-ad { background: #6200ea; color: white; display: none; }
-        .btn-admin { background: #ff9800; color: black; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        button { width: 100%; padding: 15px 10px; border: none; border-radius: 14px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-75 { background: #2196f3; color: white; }
+        .btn-50 { background: #ff0055; color: white; }
+        .btn-25 { background: #6200ea; color: white; }
+        .btn-1 { background: linear-gradient(45deg, #ffd700, #ff8c00); color: black; grid-column: span 2; font-size: 1.2rem; border: 2px solid #fff; }
+        
+        .btn-secondary { background: #444; color: white; margin-top: 20px; }
+        .btn-ad { background: #00c853; color: white; display: none; }
         .ranking { margin-top: 30px; text-align: left; background: #252525; padding: 20px; border-radius: 16px; border: 1px solid #333; }
         .ranking-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #333; font-size: 0.9rem; }
         .user-info { font-size: 0.7rem; color: #888; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .admin-badge { background: #ff9800; color: black; padding: 2px 5px; border-radius: 4px; font-weight: bold; font-size: 0.6rem; margin-right: 5px; }
+        .btn-label { display: block; font-size: 0.7rem; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -42,40 +53,66 @@
         <div id="login-form">
             <input type="email" id="login-email" placeholder="メールアドレス">
             <input type="password" id="login-pass" placeholder="パスワード">
-            <button class="btn-primary" id="btn-login-exec">ログイン</button>
+            <button style="background:#ff0055; color:white;" id="btn-login-exec">ログイン</button>
         </div>
         <div id="signup-form" style="display:none;">
             <input type="text" id="signup-name" placeholder="ユーザーネーム">
             <input type="email" id="signup-email" placeholder="メールアドレス">
             <input type="password" id="signup-pass" placeholder="パスワード">
-            <button class="btn-secondary" id="btn-signup-exec">アカウント作成</button>
+            <button style="background:#2196f3; color:white;" id="btn-signup-exec">アカウント作成</button>
         </div>
         <div id="admin-form" style="display:none;">
-            <p style="font-size: 0.8rem; color: #ff9800;">管理者用パスワードを入力してください</p>
-            <input type="password" id="admin-pass" placeholder="Password">
-            <button class="btn-admin" id="btn-admin-exec">認証</button>
+            <input type="password" id="admin-pass" placeholder="Admin Password">
+            <button style="background:#ff9800; color:black;" id="btn-admin-exec">管理者認証</button>
         </div>
     </div>
 
     <div id="game-screen">
         <div class="user-info">
-            <span><span id="admin-label" class="admin-badge" style="display:none;">ADMIN</span><span id="display-name">Loading...</span></span>
+            <span><span id="admin-label" style="display:none; background:#ff9800; color:black; padding:2px 5px; border-radius:4px; font-weight:bold; font-size:0.6rem; margin-right:5px;">ADMIN</span><span id="display-name">---</span></span>
             <span id="display-email">---</span>
         </div>
+        
         <div class="prize-pool">
-            <span style="color:#ffd700; font-size: 0.8rem;">💰 推定キャリーオーバー賞金</span>
+            <span style="color:#ffd700; font-size: 0.8rem; font-weight: bold;">💰 推定賞金プール</span>
             <span class="prize-amount" id="prize-text">¥0</span>
+            <div class="prize-distribution">
+                <span>1位: <span id="p1">¥0</span></span>
+                <span>2位: <span id="p2">¥0</span></span>
+                <span>3位: <span id="p3">¥0</span></span>
+            </div>
+            <div class="notice-text">
+                ⚠️ 現在はテスト版のため賞金は発生しません。アプリ版リリース時に、ランキング上位者へ賞金が贈られるようになります。
+            </div>
         </div>
+
         <div id="status-msg" style="height:24px; font-weight:bold; color:#888;">READY</div>
         <div class="score-display" id="score-text">0</div>
-        <button class="btn-primary" id="challenge-btn">挑戦する (50%)</button>
-        <button class="btn-secondary" id="save-btn" style="display:none;">ランキングに保存</button>
-        <button class="btn-ad" id="ad-btn">広告を見て再開</button>
+
+        <div id="action-area">
+            <div class="btn-grid" id="normal-btns">
+                <button class="btn-75" onclick="challenge(0.75, 1)">
+                    <span class="btn-label">確率75%</span>+1 pt
+                </button>
+                <button class="btn-50" onclick="challenge(0.50, 2)">
+                    <span class="btn-label">確率50%</span>+2 pt
+                </button>
+                <button class="btn-25" onclick="challenge(0.25, 5)">
+                    <span class="btn-label">確率25%</span>+5 pt
+                </button>
+                <button class="btn-1" onclick="challenge(0.01, 'double')">
+                    <span class="btn-label">確率1%の奇跡</span>SCORE × 2
+                </button>
+            </div>
+            <button class="btn-ad" id="ad-btn">広告を見て再開</button>
+            <button class="btn-secondary" id="save-btn" style="display:none;">ランキングに保存</button>
+        </div>
+
         <div class="ranking">
             <h3 style="font-size: 0.9rem; color: #888; margin:0 0 10px 0;">📊 世界ランキング</h3>
             <div id="ranking-list"></div>
         </div>
-        <button id="btn-logout" style="background:transparent; color:#555; font-size:0.7rem; padding:5px;">ログアウト / 戻る</button>
+        <button id="btn-logout" style="background:transparent; color:#555; font-size:0.7rem; padding:15px 0 0 0; cursor:pointer;">ログアウト / 戻る</button>
     </div>
 </div>
 
@@ -101,50 +138,31 @@
     let currentUser = null;
     let userData = { name: "Player", score: 0, isGameOver: false, adCount: 5, lastUpdate: "", isAdmin: false };
 
-    const tabs = {
-        login: { tab: document.getElementById('tab-login-btn'), form: document.getElementById('login-form') },
-        signup: { tab: document.getElementById('tab-signup-btn'), form: document.getElementById('signup-form') },
-        admin: { tab: document.getElementById('tab-admin-btn'), form: document.getElementById('admin-form') }
-    };
+    // --- タブ切り替えロジック ---
+    const tL = document.getElementById('tab-login-btn'), tS = document.getElementById('tab-signup-btn'), tA = document.getElementById('tab-admin-btn');
+    const fL = document.getElementById('login-form'), fS = document.getElementById('signup-form'), fA = document.getElementById('admin-form');
+    tL.onclick = () => { tL.classList.add('active'); tS.classList.remove('active'); tA.classList.remove('active'); fL.style.display='block'; fS.style.display='none'; fA.style.display='none'; };
+    tS.onclick = () => { tS.classList.add('active'); tL.classList.remove('active'); tA.classList.remove('active'); fS.style.display='block'; fL.style.display='none'; fA.style.display='none'; };
+    tA.onclick = () => { tA.classList.add('active'); tL.classList.remove('active'); tS.classList.remove('active'); fA.style.display='block'; fL.style.display='none'; fS.style.display='none'; };
 
-    Object.keys(tabs).forEach(key => {
-        tabs[key].tab.onclick = () => {
-            Object.values(tabs).forEach(t => { t.tab.classList.remove('active'); t.form.style.display = 'none'; });
-            tabs[key].tab.classList.add('active');
-            tabs[key].form.style.display = 'block';
-        };
-    });
-
+    // --- 認証 ---
     document.getElementById('btn-login-exec').onclick = async () => {
-        const e = document.getElementById('login-email').value;
-        const p = document.getElementById('login-pass').value;
-        try { await signInWithEmailAndPassword(auth, e, p); } catch (err) { alert("失敗: " + err.message); }
+        try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch (e) { alert("失敗"); }
     };
-
     document.getElementById('btn-signup-exec').onclick = async () => {
         const n = document.getElementById('signup-name').value;
-        const e = document.getElementById('signup-email').value;
-        const p = document.getElementById('signup-pass').value;
-        if(!n) return alert("ネームを入力してください");
         try {
-            const res = await createUserWithEmailAndPassword(auth, e, p);
+            const res = await createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-pass').value);
             userData = { name: n, score: 0, isGameOver: false, adCount: 5, lastUpdate: new Date().toLocaleDateString(), isAdmin: false };
             await setDoc(doc(db, "users", res.user.uid), userData);
-        } catch (err) { alert("登録失敗: " + err.message); }
+        } catch (e) { alert("失敗"); }
     };
-
     document.getElementById('btn-admin-exec').onclick = async () => {
-        const p = document.getElementById('admin-pass').value;
-        if(p === "Sasaki15") {
-            try {
-                const res = await signInAnonymously(auth);
-                // 名前を「Admin」に修正
-                userData = { name: "Admin", score: 0, isGameOver: false, adCount: 999, lastUpdate: "", isAdmin: true };
-                await setDoc(doc(db, "users", res.user.uid), userData);
-            } catch (err) { alert("Admin Error: " + err.message); }
-        } else {
-            alert("Password Incorrect");
-        }
+        if(document.getElementById('admin-pass').value === "Sasaki15") {
+            const res = await signInAnonymously(auth);
+            userData = { name: "Admin", score: 0, isGameOver: false, adCount: 999, lastUpdate: "", isAdmin: true };
+            await setDoc(doc(db, "users", res.user.uid), userData);
+        } else { alert("Error"); }
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -168,15 +186,12 @@
             userData = d.data();
             const today = new Date().toLocaleDateString();
             if (!userData.isAdmin && userData.lastUpdate !== today) {
-                userData.adCount = 5;
-                userData.lastUpdate = today;
-                await saveToFirebase();
+                userData.adCount = 5; userData.lastUpdate = today; await saveToFirebase();
             }
         }
         document.getElementById('display-name').innerText = userData.name;
         document.getElementById('display-email').innerText = currentUser.isAnonymous ? "Admin Mode" : currentUser.email;
         document.getElementById('admin-label').style.display = userData.isAdmin ? 'inline' : 'none';
-        document.getElementById('card-badge').innerText = userData.isAdmin ? "ADMIN CONTROL" : "LUCK 50";
         updateUI();
     }
 
@@ -184,15 +199,26 @@
         if (currentUser) await setDoc(doc(db, "users", currentUser.uid), userData);
     }
 
-    document.getElementById('challenge-btn').onclick = async () => {
-        if (Math.random() < 0.5) {
-            userData.score++;
-            document.getElementById('status-msg').innerText = "SUCCESS!";
+    // --- ゲームロジック ---
+    window.challenge = async (prob, gain) => {
+        if (prob === 0.01) {
+            const sure = confirm("【警告】確率はわずか1%です。成功すればスコアは2倍になりますが、失敗すれば全てを失います。挑戦しますか？");
+            if (!sure) return;
+        }
+
+        if (Math.random() < prob) {
+            if (gain === 'double') {
+                userData.score *= 2;
+                document.getElementById('status-msg').innerText = "MIRACLE!! SCORE x2";
+            } else {
+                userData.score += gain;
+                document.getElementById('status-msg').innerText = "SUCCESS!";
+            }
             document.getElementById('status-msg').style.color = "#00ff88";
         } else {
             userData.score = 0;
             userData.isGameOver = true;
-            document.getElementById('status-msg').innerText = "FAILED...";
+            document.getElementById('status-msg').innerText = "FATAL ERROR... RESET";
             document.getElementById('status-msg').style.color = "#ff0055";
         }
         await saveToFirebase();
@@ -200,43 +226,36 @@
     };
 
     document.getElementById('ad-btn').onclick = async () => {
-        if (!userData.isAdmin && userData.adCount <= 0) return alert("本日分は終了しました");
-        try {
-            await updateDoc(doc(db, "config", "stats"), { total_ads_watched: increment(1) });
-            if(!userData.isAdmin) userData.adCount--;
-            userData.isGameOver = false;
-            userData.score = 0;
-            await saveToFirebase();
-            updateUI();
-        } catch (e) { alert("Error"); }
-    };
-
-    document.getElementById('save-btn').onclick = async () => {
-        if(!confirm(userData.score + "連勝を保存？")) return;
-        await addDoc(collection(db, "rankings"), { 
-            name: (userData.isAdmin ? "[ADM] " : "") + userData.name, 
-            score: userData.score, 
-            timestamp: serverTimestamp() 
-        });
-        userData.score = 0;
-        userData.isGameOver = true;
+        if (!userData.isAdmin && userData.adCount <= 0) return alert("本日分終了");
+        await updateDoc(doc(db, "config", "stats"), { total_ads_watched: increment(1) });
+        if(!userData.isAdmin) userData.adCount--;
+        userData.isGameOver = false; userData.score = 0;
         await saveToFirebase();
         updateUI();
     };
 
+    document.getElementById('save-btn').onclick = async () => {
+        if(!confirm(userData.score + " pt を保存しますか？")) return;
+        await addDoc(collection(db, "rankings"), { name: (userData.isAdmin ? "[ADM] " : "") + userData.name, score: userData.score, timestamp: serverTimestamp() });
+        userData.score = 0; userData.isGameOver = true; await saveToFirebase(); updateUI();
+    };
+
     function updateUI() {
         document.getElementById('score-text').innerText = userData.score;
-        document.getElementById('challenge-btn').style.display = userData.isGameOver ? 'none' : 'block';
+        document.getElementById('normal-btns').style.display = userData.isGameOver ? 'none' : 'grid';
         document.getElementById('ad-btn').style.display = userData.isGameOver ? 'block' : 'none';
         document.getElementById('save-btn').style.display = (!userData.isGameOver && userData.score > 0) ? 'block' : 'none';
-        const label = userData.isAdmin ? "管理者パワーで再開 (∞)" : `広告を見て再開 (残り ${userData.adCount}/5)`;
-        document.getElementById('ad-btn').innerText = label;
+        document.getElementById('ad-btn').innerText = userData.isAdmin ? "Admin Power" : `広告を見て再開 (残り ${userData.adCount}/5)`;
     }
 
+    // 賞金計算の更新（1位30%, 2位20%, 3位10%）
     onSnapshot(doc(db, "config", "stats"), (d) => {
         if(d.exists()) {
-            const amount = Math.floor(d.data().total_ads_watched * 5 * 0.6);
-            document.getElementById('prize-text').innerText = `¥${amount.toLocaleString()}`;
+            const totalRevenue = d.data().total_ads_watched * 5; // 1再生5円計算
+            document.getElementById('prize-text').innerText = `¥${totalRevenue.toLocaleString()}`;
+            document.getElementById('p1').innerText = `¥${Math.floor(totalRevenue * 0.3).toLocaleString()}`;
+            document.getElementById('p2').innerText = `¥${Math.floor(totalRevenue * 0.2).toLocaleString()}`;
+            document.getElementById('p3').innerText = `¥${Math.floor(totalRevenue * 0.1).toLocaleString()}`;
         }
     });
 
@@ -244,7 +263,7 @@
         const l = document.getElementById('ranking-list');
         l.innerHTML = "";
         s.forEach(d => {
-            l.innerHTML += `<div class="ranking-item"><span>${d.data().name}</span><span>${d.data().score}連勝</span></div>`;
+            l.innerHTML += `<div class="ranking-item"><span>${d.data().name}</span><span>${d.data().score} pt</span></div>`;
         });
     });
 </script>
