@@ -23,7 +23,6 @@
         .ranking-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #333; }
         .contact-area { margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; font-size: 0.85rem; }
         .contact-link { color: #2196f3; text-decoration: none; font-weight: bold; border-bottom: 1px solid #2196f3; }
-        .footer-note { font-size: 0.65rem; color: #666; margin-top: 20px; line-height: 1.4; }
         .btn-admin-auth { background: transparent; color: #333; font-size: 0.7rem; padding: 5px; width: auto; margin-top: 10px; }
     </style>
 </head>
@@ -37,9 +36,7 @@
         <span class="prize-amount" id="prize-text">¥0</span>
     </div>
     
-    <div class="info-bar">
-        🏆 毎週日曜24時締切 / 上位3名にポイント付与！
-    </div>
+    <div class="info-bar">🏆 毎週日曜24時締切 / 上位3名に特典！</div>
     
     <div id="status-msg" style="height:24px; font-weight:bold; color:#888;">TAP TO START</div>
     <div class="score-display" id="score-text">0</div>
@@ -50,18 +47,13 @@
     <button class="btn-admin-resurrect" id="admin-res-btn">管理者パワーで復活</button>
 
     <div class="ranking">
-        <h3>📊 ウィークリーランキング (Top 10)</h3>
-        <div id="ranking-list"></div>
+        <h3>📊 世界ランキング (Top 10)</h3>
+        <div id="ranking-list">読み込み中...</div>
     </div>
 
     <div class="contact-area">
         📩 ご要望・当選確認は<br>
         <a href="https://x.com/_LUCK_50" target="_blank" class="contact-link">公式X（@_LUCK_50）まで</a>
-    </div>
-
-    <div class="footer-note">
-        【テスト版に関する注意事項】<br>
-        本サイトは開発中のテスト版です。データのリセットや仕様変更が予告なく行われる場合があります。
     </div>
 
     <button class="btn-admin-auth" id="admin-auth-btn">管理者用</button>
@@ -71,7 +63,102 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-    // ご提示いただいた最新のConfig
+    // 最新のFirebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyDMwuHeWjTy8mh3kYP8yz9_YoF9IFi9e7I",
-        authDomain:
+        authDomain: "kuck1-12bc6.firebaseapp.com",
+        projectId: "kuck1-12bc6",
+        storageBucket: "kuck1-12bc6.firebasestorage.app",
+        messagingSenderId: "888812967555",
+        appId: "1:888812967555:web:7e54f508a6bf5ed931adb6",
+        measurementId: "G-Q7876FZ3QP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let currentScore = 0;
+    let isGameOver = false;
+    let adCount = 3;
+    let isAdmin = false;
+    let statsLoaded = false;
+
+    // --- Firebase リアルタイムデータ取得 ---
+    onSnapshot(doc(db, "config", "stats"), (d) => {
+        if(d.exists()) {
+            const watchedCount = Number(d.data().total_ads_watched) || 0;
+            const amount = Math.floor(watchedCount * 5 * 0.6);
+            document.getElementById('prize-text').innerText = `¥${amount.toLocaleString()}`;
+            statsLoaded = true;
+        }
+    }, (err) => { statsLoaded = true; });
+
+    onSnapshot(query(collection(db, "rankings"), orderBy("score", "desc"), limit(10)), (s) => {
+        const l = document.getElementById('ranking-list');
+        l.innerHTML = "";
+        s.forEach(d => {
+            l.innerHTML += `<div class="ranking-item"><span>${d.data().name}</span><span>${d.data().score} 連勝</span></div>`;
+        });
+    });
+
+    // --- ゲームロジック ---
+    document.getElementById('challenge-btn').onclick = () => {
+        if (Math.random() < 0.5) {
+            currentScore++;
+            document.getElementById('status-msg').innerText = "SUCCESS!";
+            document.getElementById('status-msg').style.color = "#00ff88";
+        } else {
+            isGameOver = true;
+            document.getElementById('status-msg').innerText = "FAILED...";
+            document.getElementById('status-msg').style.color = "#ff0055";
+        }
+        updateUI();
+    };
+
+    document.getElementById('save-btn').onclick = async () => {
+        const n = prompt("名前を入力してください", "名無しさん");
+        if (!n) return;
+        await addDoc(collection(db, "rankings"), { 
+            name: n + (isAdmin ? " (Admin)" : ""), 
+            score: currentScore, 
+            timestamp: serverTimestamp() 
+        });
+        currentScore = 0;
+        isGameOver = false;
+        updateUI();
+        alert("ランキングに保存しました！");
+    };
+
+    document.getElementById('ad-btn').onclick = async () => {
+        if (!statsLoaded) return;
+        if (adCount <= 0 && !isAdmin) { alert("回数制限です"); return; }
+        try {
+            await updateDoc(doc(db, "config", "stats"), { total_ads_watched: increment(1) });
+            if (!isAdmin) adCount--;
+            isGameOver = false;
+            document.getElementById('status-msg').innerText = "RESURRECTED!";
+            updateUI();
+        } catch (e) { alert("通信エラー"); }
+    };
+
+    // --- 管理者機能 ---
+    document.getElementById('admin-res-btn').onclick = () => { isGameOver = false; updateUI(); };
+    document.getElementById('admin-auth-btn').onclick = () => {
+        if(prompt("パスワード入力") === "1234") { 
+            isAdmin = true; 
+            alert("管理者モード有効"); 
+            updateUI(); 
+        }
+    };
+
+    function updateUI() {
+        document.getElementById('score-text').innerText = currentScore;
+        document.getElementById('challenge-btn').style.display = isGameOver ? 'none' : 'block';
+        document.getElementById('save-btn').style.display = (!isGameOver && currentScore > 0) ? 'block' : 'none';
+        document.getElementById('ad-btn').style.display = isGameOver ? 'block' : 'none';
+        document.getElementById('admin-res-btn').style.display = (isGameOver && isAdmin) ? 'block' : 'none';
+        document.getElementById('ad-btn').innerText = isAdmin ? "管理者復活" : `広告で復活 (残り${adCount}回)`;
+    }
+</script>
+</body>
+</html>
