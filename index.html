@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUCK 50 - 賞金プール版</title>
+    <title>LUCK 50 - OFFICIAL APP</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+      }
+    </script>
+    <meta name="theme-color" content="#ff0055">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/ff0055/ffffff?text=L50">
+
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 20px; }
         .card { background: #1e1e1e; border-radius: 24px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); max-width: 440px; margin: auto; border: 1px solid #333; position: relative; overflow: hidden; }
@@ -18,8 +28,6 @@
         
         .prize-pool { background: linear-gradient(145deg, #2c2c2c, #1a1a1a); padding: 20px; border-radius: 18px; border: 1px solid #ffd700; margin-bottom: 10px; }
         .prize-amount { font-size: 2.2rem; font-weight: bold; color: #fff; display: block; margin-top: 5px; text-shadow: 0 0 15px rgba(255,215,0,0.4); }
-        
-        /* 賞金内訳 */
         .prize-distribution { font-size: 0.75rem; color: #ffd700; margin-top: 10px; display: flex; justify-content: space-around; border-top: 1px solid #444; padding-top: 10px; }
         .notice-text { font-size: 0.65rem; color: #ff5555; margin-top: 15px; line-height: 1.4; background: rgba(255,0,0,0.1); padding: 8px; border-radius: 8px; }
 
@@ -138,16 +146,14 @@
     let currentUser = null;
     let userData = { name: "Player", score: 0, isGameOver: false, adCount: 5, lastUpdate: "", isAdmin: false };
 
-    // --- タブ切り替えロジック ---
     const tL = document.getElementById('tab-login-btn'), tS = document.getElementById('tab-signup-btn'), tA = document.getElementById('tab-admin-btn');
     const fL = document.getElementById('login-form'), fS = document.getElementById('signup-form'), fA = document.getElementById('admin-form');
     tL.onclick = () => { tL.classList.add('active'); tS.classList.remove('active'); tA.classList.remove('active'); fL.style.display='block'; fS.style.display='none'; fA.style.display='none'; };
     tS.onclick = () => { tS.classList.add('active'); tL.classList.remove('active'); tA.classList.remove('active'); fS.style.display='block'; fL.style.display='none'; fA.style.display='none'; };
     tA.onclick = () => { tA.classList.add('active'); tL.classList.remove('active'); tS.classList.remove('active'); fA.style.display='block'; fL.style.display='none'; fS.style.display='none'; };
 
-    // --- 認証 ---
     document.getElementById('btn-login-exec').onclick = async () => {
-        try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch (e) { alert("失敗"); }
+        try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch (e) { alert("ログイン失敗"); }
     };
     document.getElementById('btn-signup-exec').onclick = async () => {
         const n = document.getElementById('signup-name').value;
@@ -155,14 +161,14 @@
             const res = await createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-pass').value);
             userData = { name: n, score: 0, isGameOver: false, adCount: 5, lastUpdate: new Date().toLocaleDateString(), isAdmin: false };
             await setDoc(doc(db, "users", res.user.uid), userData);
-        } catch (e) { alert("失敗"); }
+        } catch (e) { alert("登録失敗"); }
     };
     document.getElementById('btn-admin-exec').onclick = async () => {
         if(document.getElementById('admin-pass').value === "Sasaki15") {
             const res = await signInAnonymously(auth);
             userData = { name: "Admin", score: 0, isGameOver: false, adCount: 999, lastUpdate: "", isAdmin: true };
             await setDoc(doc(db, "users", res.user.uid), userData);
-        } else { alert("Error"); }
+        } else { alert("Password Incorrect"); }
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -190,7 +196,7 @@
             }
         }
         document.getElementById('display-name').innerText = userData.name;
-        document.getElementById('display-email').innerText = currentUser.isAnonymous ? "Admin Mode" : currentUser.email;
+        document.getElementById('display-email').innerText = currentUser.isAnonymous ? "Admin Access" : currentUser.email;
         document.getElementById('admin-label').style.display = userData.isAdmin ? 'inline' : 'none';
         updateUI();
     }
@@ -199,7 +205,6 @@
         if (currentUser) await setDoc(doc(db, "users", currentUser.uid), userData);
     }
 
-    // --- ゲームロジック ---
     window.challenge = async (prob, gain) => {
         if (prob === 0.01) {
             const sure = confirm("【警告】確率はわずか1%です。成功すればスコアは2倍になりますが、失敗すれば全てを失います。挑戦しますか？");
@@ -218,7 +223,7 @@
         } else {
             userData.score = 0;
             userData.isGameOver = true;
-            document.getElementById('status-msg').innerText = "FATAL ERROR... RESET";
+            document.getElementById('status-msg').innerText = "FAILED... RESET";
             document.getElementById('status-msg').style.color = "#ff0055";
         }
         await saveToFirebase();
@@ -235,8 +240,12 @@
     };
 
     document.getElementById('save-btn').onclick = async () => {
-        if(!confirm(userData.score + " pt を保存しますか？")) return;
-        await addDoc(collection(db, "rankings"), { name: (userData.isAdmin ? "[ADM] " : "") + userData.name, score: userData.score, timestamp: serverTimestamp() });
+        if(!confirm(userData.score + " pt をランキングに保存しますか？")) return;
+        await addDoc(collection(db, "rankings"), { 
+            name: (userData.isAdmin ? "[ADM] " : "") + userData.name, 
+            score: userData.score, 
+            timestamp: serverTimestamp() 
+        });
         userData.score = 0; userData.isGameOver = true; await saveToFirebase(); updateUI();
     };
 
@@ -248,10 +257,9 @@
         document.getElementById('ad-btn').innerText = userData.isAdmin ? "Admin Power" : `広告を見て再開 (残り ${userData.adCount}/5)`;
     }
 
-    // 賞金計算の更新（1位30%, 2位20%, 3位10%）
     onSnapshot(doc(db, "config", "stats"), (d) => {
         if(d.exists()) {
-            const totalRevenue = d.data().total_ads_watched * 5; // 1再生5円計算
+            const totalRevenue = d.data().total_ads_watched * 5;
             document.getElementById('prize-text').innerText = `¥${totalRevenue.toLocaleString()}`;
             document.getElementById('p1').innerText = `¥${Math.floor(totalRevenue * 0.3).toLocaleString()}`;
             document.getElementById('p2').innerText = `¥${Math.floor(totalRevenue * 0.2).toLocaleString()}`;
